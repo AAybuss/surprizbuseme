@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BUSEM için &lt;3</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:#060208;color:#fff;font-family:Arial,sans-serif;display:grid;place-items:center;overflow:hidden}.wrap{text-align:center;width:100%;padding:15px}h1{font-size:clamp(30px,7vw,58px);color:#ff658a;text-shadow:0 0 25px #ff205b;margin:0 0 30px}button{background:#ff2861;color:white;border:0;border-radius:40px;padding:16px 35px;font-size:20px;cursor:pointer;box-shadow:0 0 24px #ff286180}button:hover{transform:scale(1.05)}canvas{display:none;width:min(92vw,800px);height:min(92vw,800px);max-height:85dvh;object-fit:contain;margin:auto} .playing h1,.playing button{display:none}.playing canvas{display:block}
+</style></head>
+<body><main class="wrap" id="wrap"><h1>BUSEM için &lt;3</h1><button id="start">bas askm 💗</button><canvas id="heart" width="800" height="800" aria-label="Sevgi sözcüklerinden oluşan kalp"></canvas></main>
+<script>
+const canvas=document.getElementById('heart'),ctx=canvas.getContext('2d'),wrap=document.getElementById('wrap');
+const phrases=['I love you','Seni seviyorum','Te amo',"Je t’aime",'Ich liebe dich','Ti amo','Eu te amo','Я тебя люблю','사랑해','愛してる','我爱你','Σ’ αγαπώ','Ik hou van jou','Jag älskar dig','Kocham cię','ฉันรักเธ','Anh yêu em','Aku cinta kamu'];
+function heart(t){return [16*Math.sin(t)**3*21, (13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))*21+20]}
+const poly=Array.from({length:720},(_,i)=>heart(2*Math.PI*i/720));
+function spans(y){let xs=[];for(let i=0;i<poly.length;i++){let [x1,y1]=poly[i],[x2,y2]=poly[(i+1)%poly.length];if((y1<=y&&y<y2)||(y2<=y&&y<y1))xs.push(x1+(y-y1)*(x2-x1)/(y2-y1))}xs.sort((a,b)=>a-b);return Array.from({length:Math.floor(xs.length/2)},(_,i)=>[xs[2*i],xs[2*i+1]])}
+function intersection(a,b){let out=[];for(const x of a)for(const y of b){let lo=Math.max(x[0],y[0]),hi=Math.min(x[1],y[1]);if(hi-lo>14)out.push([lo,hi])}return out}
+function build(){let placed=[],min=Math.min(...poly.map(p=>p[1])),max=Math.max(...poly.map(p=>p[1]));let k=0;for(let y=max-12;y>min+12;y-=23){for(let [lo,hi] of intersection(spans(y+11),spans(y-11))){lo+=4;hi-=4;let cur=lo+Math.random()*8,line=[];while(true){let fit=null;for(let a=0;a<12;a++){let text=phrases[Math.floor(Math.random()*phrases.length)],size=9+Math.floor(Math.random()*4);ctx.font=`bold ${size}px Arial`;let w=ctx.measureText(text).width;if(cur+w<=hi){fit={text,size,w};break}}if(!fit)break;line.push({...fit,x:cur+fit.w/2});cur+=fit.w+7}if(line.length===1)line[0].x=(lo+hi)/2;else if(line.length>1){let extra=hi-(line.at(-1).x+line.at(-1).w/2);line.forEach((p,i)=>p.x+=extra*i/(line.length-1))}line.forEach((p,i)=>placed.push({...p,y,edge:i===0||i===line.length-1}))}}let cy=(max+min)/2;placed.forEach(p=>{let rad=Math.min(1,Math.hypot(p.x/336,(p.y-cy)/304.5));p.color=`hsl(${352+Math.random()*6} 95% ${29+rad*22+(p.edge?8:0)}%)`;p.rad=rad});return placed.filter(p=>p.edge).sort((a,b)=>Math.atan2(a.x,a.y-cy)-Math.atan2(b.x,b.y-cy)).concat(placed.filter(p=>!p.edge).sort((a,b)=>b.rad-a.rad))}
+let items=[],start=0;function frame(now){let progress=Math.min(1,(now-start)/10000);ctx.fillStyle='#060208';ctx.fillRect(0,0,800,800);ctx.textAlign='center';ctx.textBaseline='middle';let count=Math.floor(progress*items.length);for(let i=0;i<count;i++){let p=items[i],age=Math.min(1,((now-start)-(i/items.length)*10000)/650),ease=1-(1-age)**3;ctx.globalAlpha=ease;ctx.font=`bold ${p.size}px Arial`;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=age<1?10:2;ctx.fillText(p.text,400+p.x,400-p.y-(1-ease)*34)}ctx.globalAlpha=1;ctx.shadowBlur=0;if(progress<1)requestAnimationFrame(frame);else shimmer()}
+function shimmer(){let p=items[Math.floor(Math.random()*items.length)];if(!p)return;ctx.font=`bold ${p.size}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffb3c5';ctx.fillText(p.text,400+p.x,400-p.y);setTimeout(()=>{ctx.fillStyle=p.color;ctx.fillText(p.text,400+p.x,400-p.y)},250);setTimeout(shimmer,180)}
+document.getElementById('start').onclick=()=>{wrap.classList.add('playing');ctx.fillStyle='#060208';ctx.fillRect(0,0,800,800);items=build();start=performance.now();requestAnimationFrame(frame)};
+</script></body></html>
